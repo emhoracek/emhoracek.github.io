@@ -20,7 +20,7 @@
         this.evilTree = new Image();
         this.evilTree.src = "images/eviltree.png";
 
-        this.road = buildRoad(this, this.size.y, 0, 250);
+        this.road = buildRoad(this, this.size.y, 150, 250);
         this.player = new Player(this);
         this.bodies = [this.road, this.player ];
         
@@ -80,13 +80,33 @@
         this.keyboarder = new Keyboarder();
         this.image = game.playerImage;
         this.sprite = new Sprite ( this, { x: 20, y: 20 }, 8, 6 );
-        this.state = "skating";
+        this.state = "standing";
     };
 
     Player.prototype = {
         update: function() {
 
-            /*
+            if (isDown(KEYS.DOWN)) {
+                this.state = "skating";
+            }
+            else if (isDown(KEYS.UP)) {
+                this.state = "standing";
+            }
+            else {
+                this.state = "skating";
+            }
+            console.log(this.state);
+            /*if (this.state == "standing") {
+                this.sprite = new Sprite (this, {x: 20, y: 20}, 1 );
+            }
+            else if (this.state == "skating") {
+                this.sprite = new Sprite ( this, {x: 20, y: 20}, 8, 6);
+            }
+            else {
+                throw "oops";
+            }
+              */  
+                /*
             if (isDown(37)) {
                 this.state = "turning left";
             }
@@ -187,8 +207,8 @@
 
         this.game = game;
         this.size = { x: 64, y: 64 } ;
-        this.center = { x: game.center.x, y: game.center.y };
-        this.image = game.eviltree;
+        this.center = center;
+        this.image = game.evilTree;
         this.sprite = new Sprite ( this, {x: 51, y: 58 } );
     };
 
@@ -198,10 +218,7 @@
         },
 
         draw: function(screen) {
-
-            this.sprite.render(screen);
-
-            drawRect (screen, this, "red");
+        //    this.sprite.render(screen);
         }
     };
 
@@ -210,8 +227,8 @@
         this.size = { x: 250, y: game.size.y } 
         this.center = {x: game.center.x, y: game.center.y};
         this.yaccel = 0;
-        this.yspeed = 5;
-        this.xspeed = 5;
+        this.yspeed = 0;
+        this.xspeed = 0;
         this.segments = [];
         this.decorations = [];
     };
@@ -219,29 +236,64 @@
     Road.prototype = {
         update: function() {
             
+            var maxspeed = 10;
             var lowesty = 0;
 
-            if (this.yspeed < 10) {
-                this.yspeed = this.yspeed + (this.yspeed * this.yaccel);
-            }
-            else if (this.acceleration > 10) { 
-                this.acceleration = 10;
-            }
-            
+            var increaseSpeed = function (currentSpeed) {
+                if (currentSpeed < maxspeed) {
+                    return currentSpeed + 1;
+                }
+                else {
+                    return currentSpeed;
+                }
+            };
+
+            var decreaseSpeed = function (currentSpeed) {
+                if (currentSpeed > 0) {
+                    return currentSpeed - 0.01;
+                }
+                else {
+                    return 0;
+                }
+            };
+
             for (var i = 0; i < this.segments.length; i ++) {
-                
+               
                 this.segments[i].center.y -= this.yspeed;
 
                 if (this.segments[i].center.y > lowesty) {
                     lowesty = this.segments[i].center.y;
                 }
 
+                if (isDown(KEYS.DOWN)){
+                    this.yspeed = increaseSpeed(this.yspeed);
+                }
+                else if (isDown(KEYS.UP)) {
+                    this.yspeed = decreaseSpeed(this.yspeed);
+                }
+
                 if (isDown(37)) {
+                    this.xspeed = increaseSpeed(this.xspeed);
                     this.segments[i].center.x += this.xspeed;
                 }
                 else if (isDown(39)) {
+                    this.xspeed = increaseSpeed(this.xspeed);
                     this.segments[i].center.x -= this.xspeed;
                 }
+                else {
+                    xspeed = decreaseSpeed(this.xspeed);
+                }
+            }
+
+            for (var i = 0; i < this.decorations.length; i++ ) {
+                
+                this.decorations[i].center.y -= this.yspeed;
+
+                /*
+                if (this.decorations[i].center.y > lowesty) {
+                    lowesty = this.decorations[i].center.y;
+                }*/
+
             }
             
             function isOnScreen(obj) {
@@ -249,6 +301,7 @@
             }
 
             var  new_segments = this.segments.filter(isOnScreen);
+            var new_decorations = this.decorations.filter(isOnScreen);
             
             if (lowesty < 550) {
                 new_segments = new_segments.concat(buildRoad(this.game, 200, lowesty, this.segments[0].center.x).segments);
@@ -256,7 +309,7 @@
 
             this.segments = new_segments;
 
-            this.decorations = new Decoration (this.game, {x: 250, y: 250}); 
+            //this.decorations = [ new Decoration (this.game, {x: 250, y: 250})]; 
             
         },
 
@@ -310,6 +363,11 @@
 
                 diffSlope = nextSlope - curSlope;
             }
+        }
+
+        for ( var i=0; i < 5; i++) {
+            var locy = Math.floor(Math.random() * 500);
+            road.decorations.push(new Decoration(game, {x: 0, y: locy }));
         }
 
         return road;
