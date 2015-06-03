@@ -1,7 +1,10 @@
 html, body { margin: 0 }
 
-body { font-family: georgia; padding: 1em }
+body { font-family: georgia; 
+       padding: 1em } 
 
+main { margin: auto;
+       width: 60em }
 h1 {font-family: sans;
     text-align: center;
     margin: auto;
@@ -9,6 +12,7 @@ h1 {font-family: sans;
     margin-bottom: 1em; } 
 
 h2 { font-family: sans }
+
 .project { color: red }
 
 h3 { font-family: sans }
