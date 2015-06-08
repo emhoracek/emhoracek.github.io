@@ -1,3 +1,14 @@
+/*
+ * MADLIBS!! by Libby
+ * for Flocabulary 
+ *
+ */
+
+// Make a story!
+// It's easier if you don't have to use lots of ugly HTML tags.
+// So here's a very pretty syntax for making madlibs! Just wrap every 
+// "mad" word in braces. The first word is the original word, and the 
+// second is your description.
 var sample_story = 
 "JavaScript is built on some very { good, adjective } ideas and a few very " + 
 "{ bad, adjective } ones. The very { good, adjective } ideas include " + 
@@ -8,32 +19,33 @@ var sample_story =
 "are first class  { objects, plural noun } with (mostly) " +
 "{ lexical, adjective }  scoping. ";
 
-// It would be awesome if I could NOT MATCH THE STUPID BRACKETS
+// Next some resources for parsing the story into things we can use with React.
+
+// Regular expressions are pretty awesome.
 var match_words = /(\{)(?:[^\}])*(\})/g;
-
-// Gets rid of brackets and separates original word and type
+// Gets rid of brackets and separates original word and word type
 var parse_match = /\{\s?(.+),\s?(.+)\s?\}/;
-
-// This matches one bunch of regular words and one mad word at a time.
-var match_slow = /([^\{]+)\{\s?([^,]+),\s?([^\}]+)\s?\}(.*$)/
 
 // this returns an array of words and objects representing the story
 var parse_story = function(story) {
     var text = [];
-    var i = 0;
+    // This matches one bunch of plain words and one mad word at a time,
+    // and then the rest of the story.
+    var match_slow = /([^\{]+)\{\s?([^,]+),\s?([^\}]+)\s?\}(.*$)/
     var match = match_slow.exec(story);
-    while (match != null) {
-      var plain = match[1] ;
-      var word = { num: i.toString(), original: match[2], current: match[2] };
+    for (var i = 0; match != null; i++) {
+      var plain = match[1];
+      var madword = { num: i.toString(), original: match[2], current: match[2] };
       text.push( plain );
-      text.push( word );
-      story = match[4];
-      match = match_slow.exec(story);
-      i = i + 1;
+      text.push( madword );
+      rest_of_story = match[4];
+      match = match_slow.exec(rest_of_story);
     }
-    text.push(story);
+    text.push(rest_of_story);
     return text;
 }
+
+// Now for the React!!
 
 var Prompt = React.createClass({
   handleChange: function(e) {
@@ -55,18 +67,16 @@ var Prompt = React.createClass({
 var SetOfPrompts = React.createClass({
   handleChange: function(word){
     this.props.onChange(word);
-    return;
   },
   render: function(){
-    //WHYYYYYYY?!?!?!?!?
-    var hello = this.handleChange;
     var id = 0;
+    var that = this;
     var prompts = this.props.words.map(function(tuple) {
       arr = parse_match.exec(tuple);
       var word = { id: id.toString(), original: arr[1], type: arr[2] };
       id = id + 1;
       return (
-        <Prompt word={word} onChange={hello} />
+        <Prompt word={word} onChange={that.handleChange} />
       )});
     return (
       <ul className="list-prompts">
@@ -84,13 +94,13 @@ var MadWord = React.createClass({
 
 var MadStory = React.createClass({
   render: function(){
-    var text = this.props.text;
-    text = text.map(function(x) {
-      if ((typeof x) == "string") {
-        return <span>{ x }</span>
+    var story = this.props.story;
+    story = story.map(function(element) {
+      if ((typeof element) == "string") {
+        return <span>{ element }</span>
       }
       else {
-        return <MadWord word={x} />
+        return <MadWord word={element} />
       }
     });
     if (this.props.visible) {
@@ -101,7 +111,7 @@ var MadStory = React.createClass({
     }
     return (
       <p className={ visibleClass }>
-      { text }
+      { story }
       </p>
     )
   }
@@ -110,28 +120,23 @@ var MadStory = React.createClass({
 var MadLibs = React.createClass({
   getInitialState: function(){
     return {
-      text: parse_story(this.props.story),
-      visible: false
+      story: parse_story(this.props.story),
+      visible: false,
     }
   },
-  initialStory: function(story_text) {
-    return parse_story(text);
-  },
   changeStory: function(story_text, word_id, new_word) {
-    var story = story_text;
-    var text = story_text.map ( function (x) {
+    var story = story_text.map ( function (x) {
       if (x.num == word_id) {
         x.current = new_word;
       }
       return x;
     });
-    return text;
+    return story;
   },
   handleChange: function(e) {
-    var newText = this.changeStory(this.state.text, e.word_id, e.new_word);
+    var newStory = this.changeStory(this.state.story, e.word_id, e.new_word);
     this.setState ({
-      story: this.props.story,
-      text: newText
+      story: newStory
     });
   },
   toggleVisibility: function(e) {
@@ -158,7 +163,7 @@ var MadLibs = React.createClass({
       <div className="madlibs">
         <SetOfPrompts words={words} onChange={this.handleChange} />
         <button onClick={this.toggleVisibility}> {submit} </button>
-        <MadStory text={this.state.text} visible={this.state.visible}  />
+        <MadStory story={this.state.story} visible={this.state.visible}  />
       </div>
       )
   }
