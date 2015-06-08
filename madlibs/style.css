@@ -1,0 +1,29 @@
+body { font-family: "sans" }
+
+.list-prompts { width: 20em;
+                list-style: none;
+                margin: 0;
+                padding: 0 }
+
+.list-prompts li { clear: both;
+                   display: block;
+                   padding-bottom: 2em }
+.prompt-input { float: right }
+
+
+fieldset { text-align: right; width:40em }
+
+label {float: left}
+
+.madword { border-bottom: 1px solid black;
+           color: gray }
+
+.madstory { line-height: 2em;
+            width: 30em; }
+
+.madlibs { margin: 1em }
+
+.hidden { visibility: hidden }
+.visible { visibility: normal }
+
+button { display: block }
