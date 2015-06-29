@@ -24,6 +24,5 @@ label {float: left}
 .madlibs { margin: 1em }
 
 .hidden { visibility: hidden }
-.visible { visibility: normal }
 
-button { display: block }
+button { margin-right: 1em }
